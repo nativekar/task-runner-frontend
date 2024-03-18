@@ -15,6 +15,7 @@ export interface Task {
   name: string;
   concurrency: number;
   parentId: number | null;
+  retries: number,
   status: string;
   childrenIds: number[];
 }
@@ -27,9 +28,12 @@ export interface updateLogWithConcurrency {
 }
 
 export interface logs {
-  id: Task["id"];
-  key: string;
-  taskName: Task["name"];
-  status: Task["status"];
-  timeStamp: Date;
+  timeStamp: string;
+  screenshot?: string;
+  log?: string;
+}
+
+export interface Response {
+  message: string;
+  data: logs[] | [];
 }

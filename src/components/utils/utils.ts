@@ -1,5 +1,48 @@
 import { TaskStatus, Task, logs } from "../types";
-import { v4 as uuidv4 } from "uuid";
+
+export const makeUrl = (route: string, sessionId: string): string => {
+  const url = `https://lc7nld-3000.csb.app/`;
+  const batch = route === "screenshots" ? 10 : route === "logs" ? 5 : 1;
+  const queryParams = `?id=${sessionId}&batch=${batch}`;
+  return url + route + queryParams;
+};
+
+
+export const getRoute = (task: Task) => {
+  const route = task.name.toLowerCase().includes("screenshot")
+    ? "screenshots"
+    : task.name.toLowerCase().includes("log")
+      ? "logs"
+      : task.name.toLowerCase().includes("video")
+        ? "video"
+        : null;
+  if (!route) {
+    throw new Error("We cannot run this yet!");
+  }
+  return route;
+};
+
+export const fetchData = async (url: string): Promise<{ message: string, data: logs[] }> => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error(`Fetch failed: ${error}`);
+  }
+};
+
+export const getRandomLogs = (data: any, min = 50, max = 100) => {
+  const count = Math.floor(Math.random() * (max - min + 1)) + min;
+  const randomIndices = new Set<number>();
+  while (randomIndices.size < count) {
+    randomIndices.add(Math.floor(Math.random() * data.length));
+  }
+  return Array.from(randomIndices).map(index => data[index]);
+};
 
 const createGetIdCallBack = () => {
   let id = 0;
@@ -15,6 +58,7 @@ export const defaultTasks: Task[] = [
     id: getNextId(),
     name: "Download Screenshots",
     concurrency: 10,
+    retries: 0,
     parentId: null,
     status: TaskStatus.PENDING,
     childrenIds: [1],
@@ -23,6 +67,7 @@ export const defaultTasks: Task[] = [
     id: getNextId(),
     name: "Download logs",
     concurrency: 5,
+    retries: 0,
     parentId: 0,
     status: TaskStatus.PENDING,
     childrenIds: [2],
@@ -31,6 +76,7 @@ export const defaultTasks: Task[] = [
     id: getNextId(),
     name: "Create Video",
     concurrency: 1,
+    retries: 0,
     parentId: 1,
     status: TaskStatus.PENDING,
     childrenIds: [],
@@ -42,63 +88,7 @@ export const getTask = (tasks: Task[], id: number): Task | undefined => {
   if (task.length > 0) return task[0];
 };
 
-const updateLogWithConcurrency = (
-  setLogs: React.Dispatch<React.SetStateAction<logs[]>>,
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
-  task: Task,
-  status: TaskStatus,
-): void => {
-  const newLogs = Array.from({ length: task.concurrency }, () => ({
-    id: task.id,
-    key: uuidv4(),
-    taskName: task.name,
-    status,
-    timeStamp: new Date(),
-  }));
 
-  setLogs((prevLogs: logs[]) => [...prevLogs, ...newLogs]);
-
-  task.status = status;
-  setTasks((prevTasks: Task[]) =>
-    prevTasks.map((t) => (t.id === task.id ? task : t)),
-  );
-};
-
-export const runTasks = async (tasks: Task[], setTasks: any, setLogs: any) => {
-  const boundUpdateLogWithConcurrency = updateLogWithConcurrency.bind(
-    null,
-    setLogs,
-    setTasks,
-  );
-  const responses = [];
-  for (let i = 0; i < tasks.length; i++) {
-    const task = tasks[i];
-    boundUpdateLogWithConcurrency(task, TaskStatus.STARTED);
-    try {
-      boundUpdateLogWithConcurrency(task, TaskStatus.RUNNING);
-      const response = await Promise.all(
-        new Array(task.concurrency).fill(runTask(task.id)),
-      );
-      boundUpdateLogWithConcurrency(task, TaskStatus.FINISHED);
-      responses.push({
-        currentTaskId: task.id,
-        response,
-      });
-    } catch (e) {
-      boundUpdateLogWithConcurrency(task, TaskStatus.ERROR);
-      break;
-    }
-  }
-  return responses;
-};
-
-const runTask = async (taskId: number) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(taskId);
-    }, 3000);
-  });
-};
 
 const getRootTask = (tasks: Task[]): Task => {
   const tasksWithNoParent = tasks.filter((task) => task.parentId == null);

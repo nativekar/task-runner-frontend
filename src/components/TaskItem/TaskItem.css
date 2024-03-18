@@ -54,6 +54,11 @@
   cursor: pointer;
 }
 
+.status-disabled{
+  color: #d9534f;
+  cursor: not-allowed;
+}
+
 .status-failed {
   display: inline-block;
   padding: 6px 12px;

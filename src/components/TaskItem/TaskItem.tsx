@@ -26,7 +26,10 @@ const TaskItem = ({
     } else if (status === TaskStatus.RUNNING) {
       return <div className="status-running">Running</div>;
     } else if (status === TaskStatus.ERROR) {
-      return <div className="status-failed">Rerun</div>;
+      return <div className="status-failed" onClick={() => runSelectedTask()}>Rerun</div>;
+    }
+    else if (status === TaskStatus.DISABLED) {
+      return <div className="status-disabled">Too many failures</div>;
     }
   };
 
