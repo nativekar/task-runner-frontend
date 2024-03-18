@@ -26,7 +26,17 @@ const TaskView = ({ setLogs, sessionId }: TaskViewProps) => {
     return task?.name ? task.name : "No dependencies";
   };
 
-  const { updateTasks, runSelectedTask } = useTaskManager({setTasks, setProgress, sessionId, tasks, setLogs});
+  const { updateTasks, runSelectedTask } = useTaskManager({ setTasks, setProgress, sessionId, tasks, setLogs });
+
+
+  const runAllTasks = async () => {
+    setProgress(true);
+    for (let i = 0; i < tasks.length; i++) {
+      await runSelectedTask(tasks[i]);
+    }
+    setProgress(false);
+  }
+
 
   return (
     <div className="task-view">
@@ -50,7 +60,7 @@ const TaskView = ({ setLogs, sessionId }: TaskViewProps) => {
           />
         </div>
         <div className="create-task">
-          <Button name="Run all tasks" disabled={progress} />
+          <Button name="Run all tasks" disabled={progress} onClick={() => runAllTasks()}/>
         </div>
       </div>
       {isModalOpen && (
