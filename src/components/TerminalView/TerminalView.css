@@ -1,0 +1,33 @@
+.terminal-view {
+  width: 50%;
+  min-height: 750px;
+  height: 600px;
+  background-color: #1e1e1e;
+  color: #A9B7C6;
+  margin: 5px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  border-radius: 6px;
+  overflow: scroll;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  border: 1px solid #333;
+}
+
+.terminal-log {
+  display: flex;
+  justify-content: flex-start;
+  gap:12px;
+}
+
+.date-color {
+  color: #6A8759;
+}
+
+.name-color {
+  color: #CC7832;
+}
+
+.status-color {
+  color: #6897BB;
+}
